@@ -22,7 +22,7 @@ export const Route = createFileRoute("/usuario/$nome")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: UsuarioPublico;
+  component: UsuarioPublico,
 });
 
 function UsuarioPublico() {
