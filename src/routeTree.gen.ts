@@ -15,6 +15,7 @@ import { Route as ComunidadeRouteImport } from './routes/comunidade'
 import { Route as ImcRouteImport } from './routes/imc'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as UsuarioNomeRouteImport } from './routes/usuario.$nome'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsuarioNomeRoute = UsuarioNomeRouteImport.update({
+  id: '/usuario/$nome',
+  path: '/usuario/$nome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/imc': typeof ImcRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/usuario/$nome': typeof UsuarioNomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/imc': typeof ImcRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/usuario/$nome': typeof UsuarioNomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/imc': typeof ImcRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/usuario/$nome': typeof UsuarioNomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chatbot' | '/comunidade' | '/imc' | '/login' | '/perfil'
+  fullPaths:
+    | '/'
+    | '/chatbot'
+    | '/comunidade'
+    | '/imc'
+    | '/login'
+    | '/perfil'
+    | '/usuario/$nome'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chatbot' | '/comunidade' | '/imc' | '/login' | '/perfil'
+  to:
+    | '/'
+    | '/chatbot'
+    | '/comunidade'
+    | '/imc'
+    | '/login'
+    | '/perfil'
+    | '/usuario/$nome'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/imc'
     | '/login'
     | '/perfil'
+    | '/usuario/$nome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   ImcRoute: typeof ImcRoute
   LoginRoute: typeof LoginRoute
   PerfilRoute: typeof PerfilRoute
+  UsuarioNomeRoute: typeof UsuarioNomeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usuario/$nome': {
+      id: '/usuario/$nome'
+      path: '/usuario/$nome'
+      fullPath: '/usuario/$nome'
+      preLoaderRoute: typeof UsuarioNomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImcRoute: ImcRoute,
   LoginRoute: LoginRoute,
   PerfilRoute: PerfilRoute,
+  UsuarioNomeRoute: UsuarioNomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
