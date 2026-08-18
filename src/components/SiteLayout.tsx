@@ -5,6 +5,7 @@ import { useProfile } from "@/lib/use-profile";
 
 const NAV = [
   { to: "/", label: "Início" },
+  { to: "/comunidade", label: "Comunidade" },
   { to: "/chatbot", label: "Chatbot" },
   { to: "/perfil", label: "Perfil" },
   { to: "/login", label: "Login" },

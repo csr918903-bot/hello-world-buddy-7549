@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChatbotRouteImport } from './routes/chatbot'
+import { Route as ComunidadeRouteImport } from './routes/comunidade'
 import { Route as ImcRouteImport } from './routes/imc'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as UsuarioNomeRouteImport } from './routes/usuario.$nome'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -23,6 +25,11 @@ const IndexRoute = IndexRouteImport.update({
 const ChatbotRoute = ChatbotRouteImport.update({
   id: '/chatbot',
   path: '/chatbot',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComunidadeRoute = ComunidadeRouteImport.update({
+  id: '/comunidade',
+  path: '/comunidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImcRoute = ImcRouteImport.update({
@@ -40,43 +47,78 @@ const PerfilRoute = PerfilRouteImport.update({
   path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
+const UsuarioNomeRoute = UsuarioNomeRouteImport.update({
+  id: '/usuario/$nome',
+  path: '/usuario/$nome',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/chatbot': typeof ChatbotRoute
+  '/comunidade': typeof ComunidadeRoute
   '/imc': typeof ImcRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/usuario/$nome': typeof UsuarioNomeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/chatbot': typeof ChatbotRoute
+  '/comunidade': typeof ComunidadeRoute
   '/imc': typeof ImcRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/usuario/$nome': typeof UsuarioNomeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/chatbot': typeof ChatbotRoute
+  '/comunidade': typeof ComunidadeRoute
   '/imc': typeof ImcRoute
   '/login': typeof LoginRoute
   '/perfil': typeof PerfilRoute
+  '/usuario/$nome': typeof UsuarioNomeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/chatbot' | '/imc' | '/login' | '/perfil'
+  fullPaths:
+    | '/'
+    | '/chatbot'
+    | '/comunidade'
+    | '/imc'
+    | '/login'
+    | '/perfil'
+    | '/usuario/$nome'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/chatbot' | '/imc' | '/login' | '/perfil'
-  id: '__root__' | '/' | '/chatbot' | '/imc' | '/login' | '/perfil'
+  to:
+    | '/'
+    | '/chatbot'
+    | '/comunidade'
+    | '/imc'
+    | '/login'
+    | '/perfil'
+    | '/usuario/$nome'
+  id:
+    | '__root__'
+    | '/'
+    | '/chatbot'
+    | '/comunidade'
+    | '/imc'
+    | '/login'
+    | '/perfil'
+    | '/usuario/$nome'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChatbotRoute: typeof ChatbotRoute
+  ComunidadeRoute: typeof ComunidadeRoute
   ImcRoute: typeof ImcRoute
   LoginRoute: typeof LoginRoute
   PerfilRoute: typeof PerfilRoute
+  UsuarioNomeRoute: typeof UsuarioNomeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -93,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/chatbot'
       fullPath: '/chatbot'
       preLoaderRoute: typeof ChatbotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/comunidade': {
+      id: '/comunidade'
+      path: '/comunidade'
+      fullPath: '/comunidade'
+      preLoaderRoute: typeof ComunidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/imc': {
@@ -116,15 +165,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/usuario/$nome': {
+      id: '/usuario/$nome'
+      path: '/usuario/$nome'
+      fullPath: '/usuario/$nome'
+      preLoaderRoute: typeof UsuarioNomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChatbotRoute: ChatbotRoute,
+  ComunidadeRoute: ComunidadeRoute,
   ImcRoute: ImcRoute,
   LoginRoute: LoginRoute,
   PerfilRoute: PerfilRoute,
+  UsuarioNomeRoute: UsuarioNomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
