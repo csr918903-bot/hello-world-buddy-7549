@@ -121,7 +121,7 @@ function Imc() {
               <div className="mt-5 rounded-xl bg-accent p-4 text-accent-foreground">
                 <p className="text-sm">Seu IMC</p>
                 <p className="text-3xl font-bold">{imc.toFixed(2)}</p>
-                <p className="mt-1 text-sm font-medium">{FAIXAS[indice].classificacao}</p>
+                <p className="mt-1 text-sm font-medium">{FAIXAS[indice]?.classificacao}</p>
               </div>
             )}
           </div>
