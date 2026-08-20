@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
+import { banco, bancoAtivo } from "./db";
+
 export type Comentario = {
   id: string;
   autor: string;
@@ -73,6 +75,8 @@ const SEED: Post[] = [
   },
 ];
 
+/* ---------- modo navegador (localStorage) ---------- */
+
 function ler(): Post[] {
   if (typeof window === "undefined") return SEED;
   try {
@@ -94,6 +98,52 @@ function novoId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
+/* ---------- modo banco de dados (online) ---------- */
+
+type LinhaPost = {
+  id: string;
+  autor: string;
+  titulo: string;
+  texto: string;
+  curtidas: number;
+  criado_em: string;
+};
+
+type LinhaComentario = {
+  id: string;
+  post_id: string;
+  autor: string;
+  texto: string;
+  criado_em: string;
+};
+
+async function lerDoBanco(): Promise<Post[]> {
+  if (!banco) return [];
+
+  const [posts, comentarios] = await Promise.all([
+    banco.from("posts").select("*").order("criado_em", { ascending: false }),
+    banco.from("comentarios").select("*").order("criado_em", { ascending: true }),
+  ]);
+
+  if (posts.error) throw posts.error;
+  if (comentarios.error) throw comentarios.error;
+
+  const linhasPost = (posts.data ?? []) as LinhaPost[];
+  const linhasComentario = (comentarios.data ?? []) as LinhaComentario[];
+
+  return linhasPost.map((p) => ({
+    id: p.id,
+    autor: p.autor,
+    titulo: p.titulo,
+    texto: p.texto,
+    data: p.criado_em,
+    curtidas: p.curtidas,
+    comentarios: linhasComentario
+      .filter((c) => c.post_id === p.id)
+      .map((c) => ({ id: c.id, autor: c.autor, texto: c.texto, data: c.criado_em })),
+  }));
+}
+
 export function formatarData(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString("pt-BR", {
@@ -105,57 +155,111 @@ export function formatarData(iso: string) {
 }
 
 export function useCommunity() {
-  const [posts, setPosts] = useState<Post[]>(SEED);
+  const [posts, setPosts] = useState<Post[]>(bancoAtivo ? [] : SEED);
+
+  const atualizar = useCallback(async () => {
+    if (bancoAtivo) {
+      try {
+        setPosts(await lerDoBanco());
+      } catch (erro) {
+        console.error("Não consegui carregar os posts do banco:", erro);
+      }
+      return;
+    }
+    setPosts(ler());
+  }, []);
 
   useEffect(() => {
-    setPosts(ler());
-    const sync = () => setPosts(ler());
+    void atualizar();
+    const sync = () => void atualizar();
     window.addEventListener("storage", sync);
     window.addEventListener(EVENT, sync);
     return () => {
       window.removeEventListener("storage", sync);
       window.removeEventListener(EVENT, sync);
     };
-  }, []);
+  }, [atualizar]);
 
-  const publicar = useCallback((autor: string, titulo: string, texto: string) => {
-    const post: Post = {
-      id: novoId(),
-      autor,
-      titulo,
-      texto,
-      data: new Date().toISOString(),
-      curtidas: 0,
-      comentarios: [],
-    };
-    gravar([post, ...ler()]);
-  }, []);
+  const publicar = useCallback(
+    async (autor: string, titulo: string, texto: string) => {
+      if (banco) {
+        const { error } = await banco.from("posts").insert({ autor, titulo, texto });
+        if (error) console.error("Não consegui publicar:", error);
+        await atualizar();
+        return;
+      }
+      const post: Post = {
+        id: novoId(),
+        autor,
+        titulo,
+        texto,
+        data: new Date().toISOString(),
+        curtidas: 0,
+        comentarios: [],
+      };
+      gravar([post, ...ler()]);
+    },
+    [atualizar],
+  );
 
-  const curtir = useCallback((id: string) => {
-    gravar(ler().map((p) => (p.id === id ? { ...p, curtidas: p.curtidas + 1 } : p)));
-  }, []);
+  const curtir = useCallback(
+    async (id: string) => {
+      if (banco) {
+        const atual = posts.find((p) => p.id === id);
+        const { error } = await banco
+          .from("posts")
+          .update({ curtidas: (atual?.curtidas ?? 0) + 1 })
+          .eq("id", id);
+        if (error) console.error("Não consegui curtir:", error);
+        await atualizar();
+        return;
+      }
+      gravar(ler().map((p) => (p.id === id ? { ...p, curtidas: p.curtidas + 1 } : p)));
+    },
+    [posts, atualizar],
+  );
 
-  const comentar = useCallback((id: string, autor: string, texto: string) => {
-    gravar(
-      ler().map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              comentarios: [
-                ...p.comentarios,
-                { id: novoId(), autor, texto, data: new Date().toISOString() },
-              ],
-            }
-          : p,
-      ),
-    );
-  }, []);
+  const comentar = useCallback(
+    async (id: string, autor: string, texto: string) => {
+      if (banco) {
+        const { error } = await banco
+          .from("comentarios")
+          .insert({ post_id: id, autor, texto });
+        if (error) console.error("Não consegui comentar:", error);
+        await atualizar();
+        return;
+      }
+      gravar(
+        ler().map((p) =>
+          p.id === id
+            ? {
+                ...p,
+                comentarios: [
+                  ...p.comentarios,
+                  { id: novoId(), autor, texto, data: new Date().toISOString() },
+                ],
+              }
+            : p,
+        ),
+      );
+    },
+    [atualizar],
+  );
 
-  const apagar = useCallback((id: string) => {
-    gravar(ler().filter((p) => p.id !== id));
-  }, []);
+  const apagar = useCallback(
+    async (id: string) => {
+      if (banco) {
+        const { error } = await banco.from("posts").delete().eq("id", id);
+        if (error) console.error("Não consegui apagar:", error);
+        await atualizar();
+        return;
+      }
+      gravar(ler().filter((p) => p.id !== id));
+    },
+    [atualizar],
+  );
 
-  return { posts, publicar, curtir, comentar, apagar };
+  return { posts, publicar, curtir, comentar, apagar, online: bancoAtivo };
 }
 
 export function avatarDe(nome: string) {
